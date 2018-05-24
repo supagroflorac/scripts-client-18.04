@@ -1,0 +1,8 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+
+sleep 10s && service nslcd restart
+
+exit 0

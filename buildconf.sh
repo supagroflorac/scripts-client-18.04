@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+if [ ! -d build ]; then
+    mkdir "build"
+fi
+
 function build {
     #sudo chown -R root:root conf/${1}/*
     sudo chmod go-w conf/${1}/*

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 BASEURL="http://serveur.cdrflorac.fr/18.04/"
 
-INSTALL="sudo apt-get -y install"
+INSTALL="sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install"
 REMOVE="sudo apt-get -y purge"
 ADDREPO="sudo add-apt-repository -yu"
 
 SOFTWARE="audacity flashplugin-installer freeplane firefox firefox-locale-fr \
           gimp gimp-help-fr geany freecad inkscape kdenlive krita openshot \
-          pdfsam pdfshuffler scribus ttf-mscorefonts-installer vim vlc \
+          pdfsam pdfshuffler scribus vim vlc \
           winff thunderbird thunderbird-locale-fr"
 
 HEIGHT=20
@@ -70,7 +70,6 @@ function add_line_to_file {
 function install_software {
     lg_echo "Installation des logiciels courants :"
     echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | sudo debconf-set-selections
-    sudo export DEBIAN_FRONTEND='noninteractive'
     sudo sed -i "s/enabled=1/enabled=0/g" /etc/default/apport \
     && $INSTALL $SOFTWARE \
     && ok || error
@@ -79,7 +78,6 @@ function install_software {
 function saf_configuration {
     lg_echo "Installation des logiciels utilisés a SAF :"
     FILENAME="saf-configuration-all.tgz"
-    sudo export DEBIAN_FRONTEND='noninteractive'
     $INSTALL wine-stable ssh pidgin ocsinventory-agent \
     && wget -O /tmp/${FILENAME} "http://serveur/18.04/${FILENAME}" \
     && sudo tar xvzf /tmp/${FILENAME} -C "/" \

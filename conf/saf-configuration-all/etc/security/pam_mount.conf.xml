@@ -9,7 +9,7 @@
     <volume
         options="acl,iocharset=utf8,vers=1.0,x-gvfs-show"
         user="*"
-        mountpoint="~/Reseau/Perso"
+        mountpoint="/media/%(USER)/Reseau-Perso"
         path="%(USER)"
         server="serveur.cdrflorac.fr"
         fstype="cifs"
@@ -18,7 +18,7 @@
     <volume
         options="acl,iocharset=utf8,vers=1.0,x-gvfs-show"
         user="*"
-        mountpoint="~/Reseau/Activites"
+        mountpoint="/media/%(USER)/Reseau-Activites"
         path="Activites"
         server="serveur.cdrflorac.fr"
         fstype="cifs" />
@@ -27,7 +27,7 @@
     <volume
         options="acl,iocharset=utf8,vers=1.0,x-gvfs-show"
         user="*"
-        mountpoint="~/Reseau/Stagiaires"
+        mountpoint="/media/%(USER)/Reseau-Stagiaires"
         path="Stagiaires"
         server="serveur.cdrflorac.fr"
         fstype="cifs"
@@ -36,8 +36,17 @@
     <volume
         options="acl,iocharset=utf8,vers=1.0,x-gvfs-show"
         user="*"
-        mountpoint="~/Reseau/Ressources"
+        mountpoint="/media/%(USER)/Reseau-Ressources"
         path="Ressources"
+        server="serveur.cdrflorac.fr"
+        fstype="cifs"
+    />
+    <!--Videos-->
+    <volume
+        options="acl,iocharset=utf8,vers=1.0,x-gvfs-show"
+        user="*"
+        mountpoint="/media/%(USER)/Reseau-Videos"
+        path="Videos"
         server="serveur.cdrflorac.fr"
         fstype="cifs"
     />

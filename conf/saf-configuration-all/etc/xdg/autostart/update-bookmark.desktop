@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=update-bookmarks
+Type=Application
+GenericName=update-bookmark
+Comment=Ajoute les signets réseaux
+Exec=/usr/bin/update-bookmark
+Terminal=false

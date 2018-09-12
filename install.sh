@@ -7,7 +7,7 @@ ADDREPO="sudo add-apt-repository -yu"
 
 SOFTWARE="audacity flashplugin-installer freeplane firefox firefox-locale-fr \
           gimp gimp-help-fr geany freecad inkscape kdenlive krita openshot \
-          pdfsam pdfshuffler scribus vim vlc \
+          pdfsam pdfshuffler scribus vim vlc ssh pidgin\
           winff thunderbird thunderbird-locale-fr"
 
 HEIGHT=20
@@ -23,6 +23,7 @@ OPTIONS=(1 "Un poste fixe d'une salle"
          4 "Le poste fixe d'un collègue"
          5 "Le portable d'un étudiant"
          6 "Installation de Keepassxc / Mattermost / Nextcloud")
+         7 "Install QGis"
 
 CHOICE=$(dialog --clear \
                 --backtitle "$BACKTITLE" \
@@ -204,6 +205,11 @@ function install_libreoffice_web {
     && ok || error
 }
 
+function fix_dictionary {
+    $REMOVE "hunspell-en-*"
+    $INSTALL "hunspell hunspell-fr"
+}
+
 ################################################################################
 ## MAIN
 ################################################################################
@@ -229,8 +235,10 @@ case $CHOICE in
         ldap_configuration
         install_libreoffice_web
         install_keepassxc
+        install_nextcloud
         install_mattermost
         install_qgis
+        fix_dictionary
         ;;
     2) ## Un portable libre service
         apt_configuration
@@ -243,6 +251,7 @@ case $CHOICE in
         install_libreoffice_web
         install_keepassxc
         install_mattermost
+        fix_dictionary
         ;;
     3) ## Le portable d'un collègue
         apt_configuration
@@ -256,6 +265,7 @@ case $CHOICE in
         install_keepassxc
         install_nextcloud
         install_mattermost
+        fix_dictionary
         ;;
     4) ## Le poste fixe d'un collègue
         apt_configuration
@@ -270,6 +280,7 @@ case $CHOICE in
         install_keepassxc
         install_nextcloud
         install_mattermost
+        fix_dictionary
         ;;
     5) ## Le portable d'un étudiant
         remove_amazon
@@ -277,6 +288,7 @@ case $CHOICE in
         update
         saf_configuration
         install_libreoffice_repo
+        fix_dictionary
         ;;
 
     6) ## installation de keepassxc / mattermost / owncloud

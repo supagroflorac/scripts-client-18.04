@@ -22,8 +22,8 @@ OPTIONS=(1 "Un poste fixe d'une salle"
          3 "Le portable d'un collègue"
          4 "Le poste fixe d'un collègue"
          5 "Le portable d'un étudiant"
-         6 "Installation de Keepassxc / Mattermost / Nextcloud")
-         7 "Install QGis"
+         6 "Installation de Keepassxc / Mattermost / Nextcloud"
+         7 "Install QGis")
 
 CHOICE=$(dialog --clear \
                 --backtitle "$BACKTITLE" \
@@ -206,8 +206,25 @@ function install_libreoffice_web {
 }
 
 function fix_dictionary {
-    $REMOVE "hunspell-en-*"
-    $INSTALL "hunspell hunspell-fr"
+    $REMOVE "hunspell-en-*" \
+    && $INSTALL hunspell hunspell-fr
+}
+
+function configure_printers {
+    $REMOVE "cups*" \
+    && $INSTALL "cups-client"
+}
+
+function remove_apt_proxy {
+    sudo rm /etc/apt/apt.conf.d/01proxy
+}
+
+function disable_autoupdate {
+    sudo rm /etc/xdg/autostart/update-notifier.desktop
+    sudo systemctl disable apt-daily-upgrade.timer
+    sudo systemctl disable apt-daily.timer
+    sudo systemctl stop apt-daily.service
+    sudo systemctl stop apt-daily-upgrade.service
 }
 
 ################################################################################
@@ -220,12 +237,10 @@ if [ ! -f "/usr/bin/dialog" ]; then
     && ok || error
 fi
 
-
-
 case $CHOICE in
     1) ## Un poste fixe d'une salle
-        clear
         apt_configuration
+        disable_autoupdate
         remove_snap
         remove_amazon
         remove_welcome_screen
@@ -235,10 +250,9 @@ case $CHOICE in
         ldap_configuration
         install_libreoffice_web
         install_keepassxc
-        install_nextcloud
-        install_mattermost
         install_qgis
         fix_dictionary
+        configure_printers
         ;;
     2) ## Un portable libre service
         apt_configuration
@@ -250,7 +264,6 @@ case $CHOICE in
         saf_configuration
         install_libreoffice_web
         install_keepassxc
-        install_mattermost
         fix_dictionary
         ;;
     3) ## Le portable d'un collègue
@@ -266,9 +279,11 @@ case $CHOICE in
         install_nextcloud
         install_mattermost
         fix_dictionary
+        configure_printers
         ;;
     4) ## Le poste fixe d'un collègue
         apt_configuration
+        disable_autoupdate
         remove_snap
         remove_amazon
         remove_welcome_screen
@@ -281,14 +296,17 @@ case $CHOICE in
         install_nextcloud
         install_mattermost
         fix_dictionary
+        configure_printers
         ;;
     5) ## Le portable d'un étudiant
+        apt_configuration
         remove_amazon
         remove_welcome_screen
         update
         saf_configuration
         install_libreoffice_repo
         fix_dictionary
+        remove_apt_proxy
         ;;
 
     6) ## installation de keepassxc / mattermost / owncloud

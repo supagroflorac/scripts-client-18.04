@@ -169,7 +169,7 @@ function install_qgis {
     lg_echo "Installation de Qgis : "
     wget -O - https://qgis.org/downloads/qgis-2019.gpg.key | gpg --import \
     && gpg --export --armor CAEB3DC3BDF7FB45 | sudo apt-key add - \
-    && echo "deb https://qgis.org/debian bionic main" | sudo tee "/etc/apt/sources.list.d/qgis.list" \
+    && echo "deb https://qgis.org/ubuntu bionic main" | sudo tee "/etc/apt/sources.list.d/qgis.list" \
     && sudo apt update \
     && $INSTALL qgis python-qgis qgis-plugin-grass \
     && ok || error

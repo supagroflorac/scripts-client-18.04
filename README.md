@@ -1,7 +1,6 @@
-# scripts-client-18.04
-script de configuration pour Ubuntu 18.04
+# scripts-client
 
 Usage
 =====
 
-wget -O - http://serveur.cdrflorac.fr/18.04/install.sh | bash
+wget -O - http://conf.cdrflorac.fr/20.04/install.sh | bash

@@ -1,47 +1,55 @@
 #!/usr/bin/env bash
+readonly BASEURL="http://conf/20.04/"
 
-ok()
-{
-    echo -e "\e[32mdone\e[0m"
+readonly LIBREOFFICE_VERSION="libreoffice7.0"
+readonly LOO_FILENAME="libreoffice-7.0.0.tar.gz"
+
+readonly RED="\033[0;31m"
+readonly GREEN="\033[0;32m"
+readonly NC="\033[0m"
+
+function lg_echo {
+    printf "\n${GREEN}$1\n"
+    printf "%0.s#" $(seq 1 ${#1})
+    printf "${NC}\n\n"
 }
 
-failed()
-{
-    echo -e "\e[31mfailed\e[0m"
+function ok {
+    printf "${GREEN}ok${NC}\n\n"
 }
 
-# Mise a jour de clé du dépot QGIS (2/10/2019) /!\ a placer avant l'update
-if [[ -f "/usr/bin/qgis" ]]; then
-  wget -q -O- https://qgis.org/downloads/qgis-2019.gpg.key | gpg --import &>/dev/null \
-  && gpg --export --armor 51F523511C7028C3 | sudo apt-key add - &>/dev/null \
-  && echo "Mise à jour de la clé de dépot QGIS : $(ok)" \
-  || echo "Mise à jour de la clé de dépot QGIS : $(failed)"
-fi
+function error {
+    printf "${RED}Echec : Une erreur a eu lieu, devine laquelle...${NC}\n"
+}
 
-echo -n "Mise à jour : "
-sudo apt -y update &>/dev/null \
-&& sudo apt -y upgrade &>/dev/null \
-&& sudo apt -y autoremove --purge &>/dev/null \
-&& ok \
-|| failed
+function update {
 
-# Mise a jour des paramètres de Firefox (2/10/2019)
-echo -n "Mise à jour des préférence Mozilla/Firefox : "
-echo "pref(\"browser.startup.homepage\",\"http://www.cdrflorac.fr\");
-pref(\"print.postscript.paper_size\",\"A4\");" | sudo tee /etc/firefox/syspref.js &>/dev/null \
-&& ok \
-|| failed
+    lg_echo "Installation de libreoffice : "
+    sudo apt -y update \
+    && sudo apt -y upgrade \
+    && sudo apt -y autoremove --purge \
+    && ok || error 
+}
 
-# Mise a jour de libreoffice si necessaires (2/10/2019)
-LIBREOFFICE_VERSION="libreoffice6.3"
-if ! dpkg -s "${LIBREOFFICE_VERSION}" &>/dev/null; then
-  echo -n "Installation de ${LIBREOFFICE_VERSION} : "
-  sudo apt purge -y libreoffice* &>/dev/null \
-  && wget -q  -O "/tmp/libreoffice.tgz" "http://serveur/${LIBREOFFICE_VERSION}.tgz" \
-  && tar xzf /tmp/libreoffice.tgz --directory /tmp \
-  && sudo dpkg -i /tmp/libreoffice/*.deb  &>/dev/null \
-  && rm -r /tmp/libreoffice \
-  && rm /tmp/libreoffice.tgz \
-  && ok \
-  || failed
-fi
+function install_libreoffice_web {
+    local DEST="/tmp"
+
+    lg_echo "Installation de libreoffice : "
+    sudo apt purge -y -qq "libreoffice* libobasis*" \
+    && wget -O "${DEST}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
+    && tar xzvf "${DEST}/${LOO_FILENAME}" --directory "${DEST}/" \
+    && sudo dpkg -i ${DEST}/libreoffice/*.deb \
+    && sudo apt install -yf \
+    && rm -r "${DEST}/libreoffice" \
+    && rm "${DEST}/${LOO_FILENAME}" \
+    && ok || error
+}
+
+function main {
+    if ! dpkg -s "${LIBREOFFICE_VERSION}" &>/dev/null; then
+        install_libreoffice_web
+    fi
+    update
+}
+
+main

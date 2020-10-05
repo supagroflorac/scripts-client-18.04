@@ -189,8 +189,8 @@ function install_libreoffice_web {
         local DEST="/tmp"
         
         lg_echo "Installation de libreoffice : "
-        $REMOVE -qq "libreoffice* libobasis*" \
-        && wget -O "${DEST}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
+        $REMOVE -qq "libreoffice* libobasis*" &> /dev/null
+        wget -O "${DEST}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
         && tar xzvf "${DEST}/${LOO_FILENAME}" --directory "${DEST}/" \
         && sudo dpkg -i ${DEST}/libreoffice/*.deb \
         && sudo apt install -yf \

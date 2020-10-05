@@ -24,7 +24,7 @@ function error {
 
 function update {
 
-    lg_echo "Installation de libreoffice : "
+    lg_echo "Mise a jour du systeme : "
     sudo apt -y update \
     && sudo apt -y upgrade \
     && sudo apt -y autoremove --purge \
@@ -35,8 +35,8 @@ function install_libreoffice_web {
     local DEST="/tmp"
 
     lg_echo "Installation de libreoffice : "
-    sudo apt purge -y -qq "libreoffice* libobasis*" \
-    && wget -O "${DEST}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
+    sudo apt purge -y -qq "libreoffice* libobasis*" &> /dev/null
+    wget -O "${DEST}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
     && tar xzvf "${DEST}/${LOO_FILENAME}" --directory "${DEST}/" \
     && sudo dpkg -i ${DEST}/libreoffice/*.deb \
     && sudo apt install -yf \
@@ -45,10 +45,28 @@ function install_libreoffice_web {
     && ok || error
 }
 
+function change_mount_method() {
+    local mountfile="/etc/security/pam_mount.conf.xml"
+    local filename="saf-configuration-all.tgz"
+    
+    if [[ -f "${mountfile}" ]]; then
+        lg_echo "Changement méthode montage réseau : "
+        sudo apt -y purge libpam-mount \
+        && sudo rm "${mountfile}" \
+        && wget -O /tmp/${filename} "${BASEURL}${filename}" \
+        && sudo tar xvzf /tmp/${filename} -C "/" \
+        && rm /tmp/$filename \
+        && ok || error
+    fi
+}
+
 function main {
     if ! dpkg -s "${LIBREOFFICE_VERSION}" &>/dev/null; then
         install_libreoffice_web
     fi
+
+    change_mount_method
+
     update
 }
 

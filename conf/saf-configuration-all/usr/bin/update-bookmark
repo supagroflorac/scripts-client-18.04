@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
-SHARE_LIST="Reseau-Perso Reseau-Videos Reseau-Activites Reseau-Ressources Reseau-Stagiaires"
-BOOKMARK_FILE="${HOME}/.config/gtk-3.0/bookmarks"
+readonly SHARE_LIST="${USER} ressources activites videos stagiaires"
+readonly BOOKMARKFILE="${HOME}/.config/gtk-3.0/bookmarks"
 
-for SHARE in $SHARE_LIST; do
-	BOOKMARK="file:///media/${USER}/${SHARE} ${SHARE}"
-	if ! grep -xq "${BOOKMARK}" "${BOOKMARK_FILE}"; then
-		echo "${BOOKMARK}" | tee -a "${BOOKMARK_FILE}"
-	fi
-done
+function main() {
+	for SHARE in ${SHARE_LIST}; do
+		local bookmark="smb://serveur/${SHARE}/ reseau-${SHARE}"
+		if ! grep -xq "${bookmark}" "${BOOKMARKFILE}"; then
+			echo "${bookmark}" | tee -a "${BOOKMARKFILE}"
+		fi
+	done
+}
+
+main

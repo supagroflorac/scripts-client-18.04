@@ -226,6 +226,13 @@ function install_gnome_software {
     && ok || error
 }
 
+function add_user_safstage {
+    lg_echo "Ajoute l'utilisateur safstage : "
+    # $(openssl passwd -crypt "${PASS}") pour obtenir le mot de passe chiffré
+    sudo useradd -m -p "xj95rTvZk.8VM" "safstage" -s /bin/bash \
+    && ok || error
+}
+
 ################################################################################
 ## MAIN
 ################################################################################
@@ -262,6 +269,7 @@ function main {
             install_keepassxc
             install_qgis
             fix_dictionary
+            add_user_safstage
             ;;
         2) ## Un portable libre service
             apt_configuration

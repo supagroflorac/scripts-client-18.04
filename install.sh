@@ -137,7 +137,6 @@ function update {
 
 function install_keepassxc {
     lg_echo "Installation de Keepassxc : "
-    $REMOVE "keepassxc*"
     $ADDREPO ppa:phoerious/keepassxc \
     && $INSTALL keepassxc \
     && ok || error
@@ -145,27 +144,15 @@ function install_keepassxc {
 
 function install_nextcloud {
     lg_echo "Installation de Nextcloud : "
-    $REMOVE nextcloud-client*
     $ADDREPO ppa:nextcloud-devs/client  \
     && $INSTALL nextcloud-client nextcloud-client-nautilus \
     && ok || error
 }
 
-function install_mattermost {
-    
-    local DEST="/tmp/mattermost.deb"
-
-    lg_echo "Installation de Mattermost : "
-    wget -O $DEST "${BASEURL}mattermost.deb" \
-    && sudo dpkg -i $DEST \
-    && sudo apt-get install -yf  \
-    && rm $DEST \
-    && ok || error
-}
-
 function install_qgis {
     lg_echo "Installation de Qgis : "
-    wget -qO - https://qgis.org/downloads/qgis-2020.gpg.key | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/qgis-archive.gpg --import \
+    wget -qO - "https://qgis.org/downloads/qgis-2020.gpg.key" | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/qgis-archive.gpg --import \
+    && sudo chmod +r "/etc/apt/trusted.gpg.d/qgis-archive.gpg" \
     && echo "deb https://qgis.org/ubuntu `lsb_release -c -s` main" | sudo tee "/etc/apt/sources.list.d/qgis.list" \
     && sudo apt update \
     && $INSTALL qgis qgis-plugin-grass \
@@ -185,20 +172,19 @@ function remove_welcome_screen {
 }
 
 function install_libreoffice_web {
-    if ! dpkg -s "${LIBREOFFICE_VERSION}" &>/dev/null; then
-        local DEST="/tmp"
-        
-        lg_echo "Installation de libreoffice : "
-        $REMOVE -qq "libreoffice* libobasis*" &> /dev/null
-        wget -O "${DEST}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
-        && tar xzvf "${DEST}/${LOO_FILENAME}" --directory "${DEST}/" \
-        && sudo dpkg -i ${DEST}/libreoffice/*.deb \
-        && sudo apt install -yf \
-        && rm -r "${DEST}/libreoffice" \
-        && rm "${DEST}/${LOO_FILENAME}" \
-        && ok || error
-    fi
+    local tmpdir="/tmp"
+
+    lg_echo "Installation de libreoffice : "
+    sudo apt purge -y -qq "libreoffice* libobasis*" &> /dev/null
+    sudo wget -O "${tmpdir}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
+    && sudo tar xzvf "${tmpdir}/${LOO_FILENAME}" --directory "${tmpdir}/" \
+    && sudo dpkg -i ${tmpdir}/libreoffice/*.deb \
+    && sudo apt install -yf \
+    && rm -r "${tmpdir}/libreoffice" \
+    && rm "${tmpdir}/${LOO_FILENAME}" \
+    && ok || error
 }
+
 
 function fix_dictionary {
     $REMOVE "hunspell-en-*" \
@@ -231,6 +217,16 @@ function add_user_safstage {
     # $(openssl passwd -crypt "${PASS}") pour obtenir le mot de passe chiffré
     sudo useradd -m -p "xj95rTvZk.8VM" "safstage" -s /bin/bash \
     && ok || error
+}
+
+function add_default_conf_libreoffice {
+    local filename="libreoffice-saf-default-configuration.oxt"
+    local url="http://conf/"
+    
+    lg_echo "Configure Libre Office (boite de dialogue impression)"
+    wget -O "/tmp/${filename}" "${url}${filename}" \
+    && sudo unopkg add --shared "/tmp/${filename}" \
+    && ok || error 
 }
 
 ################################################################################
@@ -266,6 +262,7 @@ function main {
             saf_configuration
             ldap_configuration
             install_libreoffice_web
+            add_default_conf_libreoffice
             install_keepassxc
             install_qgis
             fix_dictionary
@@ -279,6 +276,7 @@ function main {
             install_software
             saf_configuration
             install_libreoffice_web
+            add_default_conf_libreoffice
             install_keepassxc
             fix_dictionary
             ;;
@@ -290,6 +288,7 @@ function main {
             install_software
             saf_configuration
             install_libreoffice_web
+            add_default_conf_libreoffice
             install_keepassxc
             install_nextcloud
             install_mattermost
@@ -306,6 +305,7 @@ function main {
             saf_configuration
             ldap_configuration
             install_libreoffice_web
+            add_default_conf_libreoffice
             install_keepassxc
             install_nextcloud
             install_mattermost

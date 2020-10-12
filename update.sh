@@ -32,16 +32,16 @@ function update {
 }
 
 function install_libreoffice_web {
-    local DEST="/tmp"
+    local tmpdir="/tmp"
 
     lg_echo "Installation de libreoffice : "
     sudo apt purge -y -qq "libreoffice* libobasis*" &> /dev/null
-    wget -O "${DEST}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
-    && tar xzvf "${DEST}/${LOO_FILENAME}" --directory "${DEST}/" \
-    && sudo dpkg -i ${DEST}/libreoffice/*.deb \
+    sudo wget -O "${tmpdir}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
+    && sudo tar xzvf "${tmpdir}/${LOO_FILENAME}" --directory "${tmpdir}/" \
+    && sudo dpkg -i ${tmpdir}/libreoffice/*.deb \
     && sudo apt install -yf \
-    && rm -r "${DEST}/libreoffice" \
-    && rm "${DEST}/${LOO_FILENAME}" \
+    && rm -r "${tmpdir}/libreoffice" \
+    && rm "${tmpdir}/${LOO_FILENAME}" \
     && ok || error
 }
 
@@ -57,6 +57,19 @@ function change_mount_method() {
         && sudo tar xvzf /tmp/${filename} -C "/" \
         && rm /tmp/$filename \
         && ok || error
+    fi
+}
+
+function add_default_conf_libreoffice() {
+    
+    if [[ $(sudo unopkg list --shared | grep -q 'libreoffice-saf-default-configuration') == 1 ]]; then
+        local filename="libreoffice-saf-default-configuration.oxt"
+        local url="http://conf/"
+
+        lg_echo "Configure Libre Office (boite de dialogue impression)"
+        wget -O "/tmp/${filename}" "${url}${filename}" \
+        && sudo unopkg add --shared "/tmp/${filename}" \
+        && ok || error 
     fi
 }
 

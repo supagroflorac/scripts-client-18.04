@@ -1,47 +1,105 @@
 #!/usr/bin/env bash
+readonly BASEURL="http://conf/18.04/"
 
-ok()
-{
-    echo -e "\e[32mdone\e[0m"
+readonly INSTALL="sudo apt -y install"
+readonly REMOVE="sudo apt-get -y purge"
+readonly ADDREPO="sudo add-apt-repository -yu"
+
+readonly LIBREOFFICE_VERSION="libreoffice7.0"
+readonly LOO_FILENAME="libreoffice-7.0.0.tar.gz"
+
+
+function lg_echo {
+    printf "\n${GREEN}$1\n"
+    printf "%0.s#" $(seq 1 ${#1})
+    printf "${NC}\n\n"
 }
 
-failed()
+function ok
 {
-    echo -e "\e[31mfailed\e[0m"
+  echo -e "\e[32mdone\e[0m"
 }
 
-# Mise a jour de clé du dépot QGIS (2/10/2019) /!\ a placer avant l'update
-if [[ -f "/usr/bin/qgis" ]]; then
-  wget -q -O- https://qgis.org/downloads/qgis-2019.gpg.key | gpg --import &>/dev/null \
-  && gpg --export --armor 51F523511C7028C3 | sudo apt-key add - &>/dev/null \
-  && echo "Mise à jour de la clé de dépot QGIS : $(ok)" \
-  || echo "Mise à jour de la clé de dépot QGIS : $(failed)"
-fi
+function error
+{
+  echo -e "\e[31merror\e[0m"
+}
 
-echo -n "Mise à jour : "
-sudo apt -y update &>/dev/null \
-&& sudo apt -y upgrade &>/dev/null \
-&& sudo apt -y autoremove --purge &>/dev/null \
-&& ok \
-|| failed
+function add_line_to_file {
+    local line="${1}"
+    local filename="${2}"
+
+    echo "ligne : $line" 
+    echo "fichier : $filename"
+
+    if $(! grep -q "${line}" "${filename}"); then
+        echo "${line}" |sudo tee -a "${filename}"
+    fi
+}
+
+function update {
+  sudo apt -y update
+  sudo apt -y upgrade
+  sudo apt -y autoremove --purge
+}
+
+# Mise a jour de clé du dépot QGIS (2/10/2019) /!\ à placer avant l'update
+function update_qgis_key {
+  if [[ -f "/usr/bin/qgis" ]]; then
+    wget -qO - https://qgis.org/downloads/qgis-2020.gpg.key | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/qgis-archive.gpg --import \
+    && echo "Mise à jour de la clé de dépot QGIS : $(ok)" \
+    || echo "Mise à jour de la clé de dépot QGIS : $(error)"
+  fi
+}
+
+
+function install_libreoffice_web {
+    local tmpdir="/tmp"
+
+    lg_echo "Installation de libreoffice : "
+    sudo apt purge -y -qq "libreoffice* libobasis*" &> /dev/null
+    sudo wget -O "${tmpdir}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
+    && sudo tar xzvf "${tmpdir}/${LOO_FILENAME}" --directory "${tmpdir}/" \
+    && sudo dpkg -i ${tmpdir}/libreoffice/*.deb \
+    && sudo apt install -yf \
+    && rm -r "${tmpdir}/libreoffice" \
+    && rm "${tmpdir}/${LOO_FILENAME}" \
+    && ok || error
+}
 
 # Mise a jour des paramètres de Firefox (2/10/2019)
-echo -n "Mise à jour des préférence Mozilla/Firefox : "
-echo "pref(\"browser.startup.homepage\",\"http://www.cdrflorac.fr\");
-pref(\"print.postscript.paper_size\",\"A4\");" | sudo tee /etc/firefox/syspref.js &>/dev/null \
-&& ok \
-|| failed
+function update_firefox_conf {
+  echo "pref(\"browser.startup.homepage\",\"http://www.cdrflorac.fr\");
+  pref(\"print.postscript.paper_size\",\"A4\");" | sudo tee /etc/firefox/syspref.js &>/dev/null \
+  && echo "Mise à jour des préférence Mozilla/Firefox : $(ok)" \
+  || echo "Mise à jour des préférence Mozilla/Firefox : $(error)"
+}
 
-# Mise a jour de libreoffice si necessaires (2/10/2019)
-LIBREOFFICE_VERSION="libreoffice6.3"
-if ! dpkg -s "${LIBREOFFICE_VERSION}" &>/dev/null; then
-  echo -n "Installation de ${LIBREOFFICE_VERSION} : "
-  sudo apt purge -y libreoffice* &>/dev/null \
-  && wget -q  -O "/tmp/libreoffice.tgz" "http://serveur/${LIBREOFFICE_VERSION}.tgz" \
-  && tar xzf /tmp/libreoffice.tgz --directory /tmp \
-  && sudo dpkg -i /tmp/libreoffice/*.deb  &>/dev/null \
-  && rm -r /tmp/libreoffice \
-  && rm /tmp/libreoffice.tgz \
-  && ok \
-  || failed
-fi
+# Changement de serveur LDAP (07/2020)
+function update_ldap_configuration {
+
+    local FILENAME="saf-configuration-ldap.tgz"
+ 
+    wget -O /tmp/${FILENAME} "${BASEURL}${FILENAME}" \
+    && sudo tar xvzf /tmp/${FILENAME} -C "/" \
+    && sudo systemctl daemon-reload \
+    && sudo service nslcd restart \
+    && sudo dconf update \
+    && echo "Ajoute l'accès a LDAP pour la liste des comptes utilisateurs : $(ok)" \
+    || echo "Ajoute l'accès a LDAP pour la liste des comptes utilisateurs : $(error)"
+}
+
+function main {
+  # Uniquement si nslcd est installé (sinon ldap n'est pas utilisé).
+  if [[ -f "/etc/nslcd.conf" ]]; then
+    update_ldap_configuration
+  fi
+  if ! dpkg -s "${LIBREOFFICE_VERSION}" &>/dev/null; then
+        install_libreoffice_web
+    fi
+  update_firefox_conf
+  update_qgis_key
+  update
+}
+
+main

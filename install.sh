@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-BASEURL="http://serveur.cdrflorac.fr/18.04/"
+readonly BASEURL="${BASEURL}"
 
-INSTALL="sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install"
-REMOVE="sudo apt-get -y purge"
-ADDREPO="sudo add-apt-repository -yu"
+readonly INSTALL="sudo DEBIAN_FRONTEND=noninteractive apt-get -y install"
+readonly REMOVE="sudo apt-get -y purge"
+readonly ADDREPO="sudo add-apt-repository -yu"
 
-SOFTWARE="audacity flashplugin-installer freeplane firefox firefox-locale-fr \
+readonly SOFTWARE="audacity flashplugin-installer freeplane firefox firefox-locale-fr \
           gimp gimp-help-fr geany freecad inkscape kdenlive krita openshot \
           pdfsam pdfshuffler scribus vim vlc ssh pidgin\
           winff thunderbird thunderbird-locale-fr"
 
-HEIGHT=20
-WIDTH=60
-CHOICE_HEIGHT=7
-BACKTITLE="SupAgro Florac"
-TITLE="Choix de la configuration"
-MENU="Quel type de poste est-ce ?"
+readonly HEIGHT=20
+readonly WIDTH=60
+readonly CHOICE_HEIGHT=7
+readonly BACKTITLE="SupAgro Florac"
+readonly TITLE="Choix de la configuration"
+readonly MENU="Quel type de poste est-ce ?"
 
-OPTIONS=(1 "Un poste fixe d'une salle"
+readonly OPTIONS=(1 "Un poste fixe d'une salle"
          2 "Un portable libre service"
          3 "Le portable d'un collègue"
          4 "Le poste fixe d'un collègue"
@@ -25,7 +25,7 @@ OPTIONS=(1 "Un poste fixe d'une salle"
          6 "Installation de Keepassxc / Mattermost / Nextcloud"
          7 "Install QGis")
 
-CHOICE=$(dialog --clear \
+readonly CHOICE=$(dialog --clear \
                 --backtitle "$BACKTITLE" \
                 --title "$TITLE" \
                 --menu "$MENU" \
@@ -34,9 +34,9 @@ CHOICE=$(dialog --clear \
                 2>&1 >/dev/tty)
 
 
-RED="\033[0;31m"
-GREEN="\033[0;32m"
-NC="\033[0m"
+readonly RED="\033[0;31m"
+readonly GREEN="\033[0;32m"
+readonly NC="\033[0m"
 
 ################################################################################
 ## FUNCTIONS
@@ -57,10 +57,10 @@ function error {
 }
 
 function add_line_to_file {
-    line="${1}"
-    filename="${2}"
+    local line="${1}"
+    local filename="${2}"
 
-    echo "ligne : $line"
+    echo "ligne : $line" 
     echo "fichier : $filename"
 
     if $(! grep -q "${line}" "${filename}"); then
@@ -77,20 +77,24 @@ function install_software {
 }
 
 function saf_configuration {
+
+    local FILENAME="saf-configuration-all.tgz"
+
     lg_echo "Installation des logiciels utilisés a SAF :"
-    FILENAME="saf-configuration-all.tgz"
     $INSTALL wine-stable ssh pidgin ocsinventory-agent \
-    && wget -O /tmp/${FILENAME} "http://serveur/18.04/${FILENAME}" \
+    && wget -O /tmp/${FILENAME} "${BASEURL}${FILENAME}" \
     && sudo tar xvzf /tmp/${FILENAME} -C "/" \
     && sudo ocsinventory-agent \
     && ok || error
 }
 
 function ldap_configuration {
+
+    local FILENAME="saf-configuration-ldap.tgz"
+
     lg_echo "Ajoute l'accès a LDAP pour la liste des comptes utilisateurs : "
     $INSTALL libpam-ldapd
-    FILENAME="saf-configuration-ldap.tgz"
-    wget -O /tmp/${FILENAME} "http://serveur/18.04/${FILENAME}" \
+    sudo wget -O /tmp/${FILENAME} "${BASEURL}${FILENAME}" \
     && sudo tar xvzf /tmp/${FILENAME} -C "/" \
     && add_line_to_file "session required pam_mkhomedir.so umask=0022 skel=/etc/skel" /etc/pam.d/common-session \
     && sudo systemctl daemon-reload \
@@ -100,21 +104,25 @@ function ldap_configuration {
 }
 
 function apt_configuration {
+    
+    local FILENAME="saf-configuration-apt.tgz"
+    
     lg_echo "Configuration de APT  :"
-    FILENAME="saf-configuration-apt.tgz"
-    wget -O /tmp/${FILENAME} "http://serveur/18.04/${FILENAME}" \
+    wget -O /tmp/${FILENAME} "${BASEURL}${FILENAME}" \
     && sudo tar xvzf /tmp/${FILENAME} -C "/" --owner=root --group=root --overwrite \
     && sudo chmod ug+x "/etc/apt/detect_proxy.sh" \
     && ok || error
 }
 
 function saf_configuration {
+    
+    local FILENAME="saf-configuration-all.tgz"
+
     lg_echo "Installe les fichiers de configuration spécifiques a SAF : "
     $INSTALL cifs-utils libpam-mount ocsinventory-agent
     $REMOVE gnome-initial-setup
-    FILENAME="saf-configuration-all.tgz"
     lg_echo "Déploiement de la configuration commune : "
-    wget -O /tmp/${FILENAME} "http://serveur/18.04/${FILENAME}" \
+    wget -O /tmp/${FILENAME} "${BASEURL}${FILENAME}" \
     && sudo tar xvzf /tmp/${FILENAME} -C "/" \
     && ok || error
 }
@@ -156,9 +164,11 @@ function install_nextcloud {
 }
 
 function install_mattermost {
+    
+    local DEST="/tmp/mattermost.deb"
+
     lg_echo "Installation de Mattermost : "
-    DEST="/tmp/mattermost.deb"
-    wget -q -O $DEST http://serveur.cdrflorac.fr/mattermost.deb \
+    wget -q -O $DEST "${BASEURL}mattermost.deb" \
     && sudo dpkg -i $DEST $NODISPLAY
     sudo apt-get install -qqyf $NODISPLAY \
     && rm $DEST \
@@ -167,11 +177,10 @@ function install_mattermost {
 
 function install_qgis {
     lg_echo "Installation de Qgis : "
-    wget -O - https://qgis.org/downloads/qgis-2019.gpg.key | gpg --import \
-    && gpg --export --armor CAEB3DC3BDF7FB45 | sudo apt-key add - \
-    && echo "deb https://qgis.org/ubuntu bionic main" | sudo tee "/etc/apt/sources.list.d/qgis.list" \
+    wget -qO - https://qgis.org/downloads/qgis-2020.gpg.key | sudo gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/qgis-archive.gpg --import \
+    && echo "deb https://qgis.org/ubuntu `lsb_release -c -s` main" | sudo tee "/etc/apt/sources.list.d/qgis.list" \
     && sudo apt update \
-    && $INSTALL qgis python-qgis qgis-plugin-grass \
+    && $INSTALL qgis qgis-plugin-grass \
     && ok || error
 }
 
@@ -188,13 +197,15 @@ function remove_welcome_screen {
 }
 
 function install_libreoffice_web {
+    
+    local DEST="/tmp"
+    local FILENAME="libreoffice.tar.gz"
+
     lg_echo "Installation de libreoffice : "
-    DEST="/tmp"
-    FILENAME="libreoffice.tar.gz"
-    # Attention : DPKG ne prend pas en compte l'étoile si dans une chaine de
+    # Attention : DPKG ne prend pas en compte l'étoile si pas dans une chaine de
     # caractère délimitée par ""
     $REMOVE "libreoffice*" \
-    && wget -q -O "${DEST}/${FILENAME}" "http://serveur/libreoffice.tar.gz" \
+    && wget -q -O "${DEST}/${FILENAME}" "${BASEURL}../${FILENAME}" \
     && cd "${DEST}" \
     && tar xvzf "${DEST}/libreoffice.tar.gz" \
     && cd - \
@@ -231,91 +242,95 @@ function disable_autoupdate {
 ## MAIN
 ################################################################################
 
-if [ ! -f "/usr/bin/dialog" ]; then
-    lg_echo "Installation de dialog : "
-    sudo $INSTALL dialog \
-    && ok || error
-fi
+function main {
+    if [ ! -f "/usr/bin/dialog" ]; then
+        lg_echo "Installation de dialog : "
+        sudo $INSTALL dialog \
+        && ok || error
+    fi
 
-case $CHOICE in
-    1) ## Un poste fixe d'une salle
-        apt_configuration
-        disable_autoupdate
-        remove_snap
-        remove_amazon
-        remove_welcome_screen
-        update
-        install_software
-        saf_configuration
-        ldap_configuration
-        install_libreoffice_web
-        install_keepassxc
-        install_qgis
-        fix_dictionary
-        configure_printers
-        ;;
-    2) ## Un portable libre service
-        apt_configuration
-        remove_snap
-        remove_amazon
-        remove_welcome_screen
-        update
-        install_software
-        saf_configuration
-        install_libreoffice_web
-        install_keepassxc
-        fix_dictionary
-        ;;
-    3) ## Le portable d'un collègue
-        apt_configuration
-        remove_snap
-        remove_amazon
-        remove_welcome_screen
-        update
-        install_software
-        saf_configuration
-        install_libreoffice_web
-        install_keepassxc
-        install_nextcloud
-        install_mattermost
-        fix_dictionary
-        configure_printers
-        ;;
-    4) ## Le poste fixe d'un collègue
-        apt_configuration
-        disable_autoupdate
-        remove_snap
-        remove_amazon
-        remove_welcome_screen
-        update
-        install_software
-        saf_configuration
-        ldap_configuration
-        install_libreoffice_web
-        install_keepassxc
-        install_nextcloud
-        install_mattermost
-        fix_dictionary
-        configure_printers
-        ;;
-    5) ## Le portable d'un étudiant
-        apt_configuration
-        remove_amazon
-        remove_welcome_screen
-        update
-        saf_configuration
-        install_libreoffice_repo
-        fix_dictionary
-        remove_apt_proxy
-        ;;
+    case $CHOICE in
+        1) ## Un poste fixe d'une salle
+            apt_configuration
+            disable_autoupdate
+            remove_snap
+            remove_amazon
+            remove_welcome_screen
+            update
+            install_software
+            saf_configuration
+            ldap_configuration
+            install_libreoffice_web
+            install_keepassxc
+            install_qgis
+            fix_dictionary
+            configure_printers
+            ;;
+        2) ## Un portable libre service
+            apt_configuration
+            remove_snap
+            remove_amazon
+            remove_welcome_screen
+            update
+            install_software
+            saf_configuration
+            install_libreoffice_web
+            install_keepassxc
+            fix_dictionary
+            ;;
+        3) ## Le portable d'un collègue
+            apt_configuration
+            remove_snap
+            remove_amazon
+            remove_welcome_screen
+            update
+            install_software
+            saf_configuration
+            install_libreoffice_web
+            install_keepassxc
+            install_nextcloud
+            install_mattermost
+            fix_dictionary
+            configure_printers
+            ;;
+        4) ## Le poste fixe d'un collègue
+            apt_configuration
+            disable_autoupdate
+            remove_snap
+            remove_amazon
+            remove_welcome_screen
+            update
+            install_software
+            saf_configuration
+            ldap_configuration
+            install_libreoffice_web
+            install_keepassxc
+            install_nextcloud
+            install_mattermost
+            fix_dictionary
+            configure_printers
+            ;;
+        5) ## Le portable d'un étudiant
+            apt_configuration
+            remove_amazon
+            remove_welcome_screen
+            update
+            saf_configuration
+            install_libreoffice_repo
+            fix_dictionary
+            remove_apt_proxy
+            ;;
 
-    6) ## installation de keepassxc / mattermost / owncloud
-        install_keepassxc
-        install_nextcloud
-        install_mattermost
-        ;;
+        6) ## installation de keepassxc / mattermost / owncloud
+            install_keepassxc
+            install_nextcloud
+            install_mattermost
+            ;;
 
-    7) ## installation de QGIS
-        install_qgis
-        ;;
-esac
+        7) ## installation de QGIS
+            install_qgis
+            ;;
+    esac
+}
+
+main

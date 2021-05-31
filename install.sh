@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-readonly BASEURL="http://conf/20.04/"
+readonly BASEURL="http://conf.cdrflorac.fr/20.04/"
 
 readonly INSTALL="sudo DEBIAN_FRONTEND=noninteractive apt-get -y install"
 readonly REMOVE="sudo apt-get -y purge"
@@ -11,9 +11,6 @@ readonly SOFTWARE="audacity freeplane firefox firefox-locale-fr \
           winff thunderbird thunderbird-locale-fr \
           webext-ublock-origin xul-ext-lightning"
 
-readonly LIBREOFFICE_VERSION="libreoffice7.0"
-readonly LOO_FILENAME="libreoffice-7.0.0.tar.gz"
-
 readonly HEIGHT=20
 readonly WIDTH=60
 readonly CHOICE_HEIGHT=7
@@ -21,9 +18,9 @@ readonly BACKTITLE="SupAgro Florac"
 readonly TITLE="Choix de la configuration"
 readonly MENU="Quel type de poste est-ce ?"
 
-readonly OPTIONS=(1 "Un poste fixe d'une salle"
-         2 "Un portable libre service"
-         3 "Le portable d'un collègue"
+readonly OPTIONS=(1 "Un pc d'une salle"
+         2 "Un pc libre service"
+         3 "Le poste d'un collègue"
          4 "Le poste fixe d'un collègue"
          5 "Le portable d'un étudiant"
          6 "Install QGis")
@@ -47,7 +44,7 @@ function ok {
 }
 
 function error {
-    printf "${RED}Echec : Une erreur a eu lieu, devine laquelle...${NC}\n"
+    printf "${RED}*****Echec*****${NC}\n"
 }
 
 function add_line_to_file {
@@ -172,17 +169,8 @@ function remove_welcome_screen {
 }
 
 function install_libreoffice_web {
-    local tmpdir="/tmp"
-
-    lg_echo "Installation de libreoffice : "
-    sudo apt purge -y -qq "libreoffice* libobasis*" &> /dev/null
-    sudo wget -O "${tmpdir}/${LOO_FILENAME}" "${BASEURL}/${LOO_FILENAME}" \
-    && sudo tar xzvf "${tmpdir}/${LOO_FILENAME}" --directory "${tmpdir}/" \
-    && sudo dpkg -i ${tmpdir}/libreoffice/*.deb \
-    && sudo apt install -yf \
-    && rm -r "${tmpdir}/libreoffice" \
-    && rm "${tmpdir}/${LOO_FILENAME}" \
-    && ok || error
+    lg_echo "Désinstalle LibreOffice, puis installe la dernière version.\n"
+    wget -O - http://conf.cdrflorac.fr/20.04/install-loo.sh | bash
 }
 
 
@@ -217,16 +205,6 @@ function add_user_safstage {
     # $(openssl passwd -crypt "${PASS}") pour obtenir le mot de passe chiffré
     sudo useradd -m -p "xj95rTvZk.8VM" "safstage" -s /bin/bash \
     && ok || error
-}
-
-function add_default_conf_libreoffice {
-    local filename="libreoffice-saf-default-configuration.oxt"
-    local url="http://conf/"
-    
-    lg_echo "Configure Libre Office (boite de dialogue impression)"
-    wget -O "/tmp/${filename}" "${url}${filename}" \
-    && sudo unopkg add --shared "/tmp/${filename}" \
-    && ok || error 
 }
 
 ################################################################################

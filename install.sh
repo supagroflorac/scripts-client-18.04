@@ -9,7 +9,7 @@ readonly SOFTWARE="audacity freeplane firefox firefox-locale-fr \
           gimp gimp-help-fr inkscape kdenlive krita openshot \
           pdfsam pdfshuffler scribus neovim vlc ssh pidgin \
           winff thunderbird thunderbird-locale-fr \
-          webext-ublock-origin xul-ext-lightning"
+          xul-ext-ublock-origin xul-ext-lightning"
 
 readonly HEIGHT=20
 readonly WIDTH=60
@@ -245,7 +245,6 @@ function main {
             saf_configuration
             ldap_configuration
             install_libreoffice_web
-            add_default_conf_libreoffice
             install_keepassxc
             install_qgis
             fix_dictionary
@@ -260,7 +259,6 @@ function main {
             install_software
             saf_configuration
             install_libreoffice_web
-            add_default_conf_libreoffice
             install_keepassxc
             fix_dictionary
             install_zoom
@@ -273,7 +271,6 @@ function main {
             install_software
             saf_configuration
             install_libreoffice_web
-            add_default_conf_libreoffice
             install_keepassxc
             install_nextcloud
             install_mattermost
@@ -291,7 +288,6 @@ function main {
             saf_configuration
             ldap_configuration
             install_libreoffice_web
-            add_default_conf_libreoffice
             install_keepassxc
             install_nextcloud
             install_mattermost

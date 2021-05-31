@@ -27,7 +27,7 @@ function error {
 }
 
 function remove_zoom() {
-    sudo apt purge zoom \
+    sudo apt -y -qq purge zoom \
     && return 0
     return 1
 }
@@ -35,7 +35,7 @@ function remove_zoom() {
 function install_zoom() {
     local dest="/tmp/zoom.deb"
     wget -O "${dest}" "${SRC}" \
-    && sudo apt install ${dest} \
+    && sudo apt -y -qq install ${dest} \
     && rm ${dest} \
     && return 0
     return 1

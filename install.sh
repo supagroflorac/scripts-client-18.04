@@ -173,6 +173,11 @@ function install_libreoffice_web {
     wget -O - http://conf.cdrflorac.fr/20.04/install-loo.sh | bash
 }
 
+function install_zoom() {
+    lg_echo "Désinstalle Zoom, puis installe la dernière version.\n"
+    wget -O - http://conf.cdrflorac.fr/20.04/install-zoom.sh | bash
+}
+
 
 function fix_dictionary {
     $REMOVE "hunspell-en-*" \
@@ -245,6 +250,7 @@ function main {
             install_qgis
             fix_dictionary
             add_user_safstage
+            install_zoom
             ;;
         2) ## Un portable libre service
             apt_configuration
@@ -257,6 +263,7 @@ function main {
             add_default_conf_libreoffice
             install_keepassxc
             fix_dictionary
+            install_zoom
             ;;
         3) ## Le portable d'un collègue
             apt_configuration
@@ -272,6 +279,7 @@ function main {
             install_mattermost
             fix_dictionary
             install_gnome_software
+            install_zoom
             ;;
         4) ## Le poste fixe d'un collègue
             apt_configuration
@@ -289,6 +297,7 @@ function main {
             install_mattermost
             fix_dictionary
             install_gnome_software
+            install_zoom
             ;;
         5) ## Le portable d'un étudiant
             apt_configuration
@@ -298,6 +307,7 @@ function main {
             install_libreoffice_repo
             fix_dictionary
             remove_apt_proxy
+            install_zoom
             ;;
 
         6) ## installation de QGIS

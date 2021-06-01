@@ -61,7 +61,7 @@ function add_default_conf_loo() {
         lg_echo "Configure Libre Office (boite de dialogue impression)"
         wget -O "/tmp/${filename}" "${LOO_SAF_EXTENSION}" \
         && sudo $unopkg add --shared "/tmp/${filename}" \
-        && return 0 \
+        && return 0
         return 1
     fi
     return 0

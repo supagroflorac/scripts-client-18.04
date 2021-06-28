@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-readonly BASEURL="http://conf.cdrflorac.fr/20.04/"
+readonly UBUNTU_VERSION="20.04"
+readonly BASEURL="http://conf.cdrflorac.fr/${UBUNTU_VERSION}/"
 
 readonly INSTALL="sudo DEBIAN_FRONTEND=noninteractive apt-get -y install"
 readonly REMOVE="sudo apt-get -y purge"
@@ -170,12 +171,18 @@ function remove_welcome_screen {
 
 function install_libreoffice_web {
     lg_echo "Désinstalle LibreOffice, puis installe la dernière version.\n"
-    wget -O - http://conf.cdrflorac.fr/20.04/install-loo.sh | bash
+    wget -O - ${BASEURL}install-loo.sh | bash
 }
 
 function install_zoom() {
     lg_echo "Désinstalle Zoom, puis installe la dernière version.\n"
-    wget -O - http://conf.cdrflorac.fr/20.04/install-zoom.sh | bash
+    wget -O - ${BASEURL}install-zoom.sh | bash
+}
+
+
+function install_reocketchat {
+    lg_echo "Désinstalle LibreOffice, puis installe la dernière version.\n"
+    wget -O - ${BASEURL}install-rocketchat.sh | bash
 }
 
 
@@ -262,6 +269,7 @@ function main {
             install_keepassxc
             fix_dictionary
             install_zoom
+            install_reocketchat
             ;;
         3) ## Le portable d'un collègue
             apt_configuration
@@ -277,6 +285,7 @@ function main {
             fix_dictionary
             install_gnome_software
             install_zoom
+            install_reocketchat
             ;;
         4) ## Le poste fixe d'un collègue
             apt_configuration
@@ -294,6 +303,7 @@ function main {
             fix_dictionary
             install_gnome_software
             install_zoom
+            install_reocketchat
             ;;
         5) ## Le portable d'un étudiant
             apt_configuration
